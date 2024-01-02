@@ -15,29 +15,48 @@ SUPPORTED_AUDIO_EXTENSIONS = [
     "wv",
 ]
 
-SAMPLES_PATH = os.path.join(os.getcwd(), "samples")
 
-
-def supported_audio_format(filename):
+def valid_audio_format(filename):
     for ext in SUPPORTED_AUDIO_EXTENSIONS:
         if filename.endswith(ext):
             return True
     return False
 
 
-def read_audio_files(directory_path):
-    metadata_items = []
+def read_music_files(directory_path):
+    music_files = []
     for filename in os.listdir(directory_path):
-        if not supported_audio_format(filename):
+        if not valid_audio_format(filename):
             continue
 
-        filepath = os.path.join(SAMPLES_PATH, filename)
-        metadata_items.append(music_tag.load_file(filepath))
-    return metadata_items
+        filepath = os.path.join(directory_path, filename)
+        music_files.append(
+            {
+                "metadata_item": music_tag.load_file(filepath),
+                "filename": filename,
+                "filepath": filepath,
+            }
+        )
+    return music_files
 
 
 def _main():
-    for audio_file in read_audio_files(SAMPLES_PATH):
+    music_directory = os.getcwd()
+
+    if len(sys.argv) > 1:
+        music_directory = os.path.join(music_directory, sys.argv[1])
+
+    if not os.path.isdir(music_directory):
+        print(
+            f"ERROR: Directory '{music_directory}' does not exist or is not a directory."
+        )
+        return 1
+
+    metadata_items = map(
+        lambda audio_file: audio_file["metadata_item"],
+        read_music_files(music_directory),
+    )
+    for audio_file in metadata_items:
         print(audio_file["title"])
 
     return 0
