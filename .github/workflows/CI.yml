@@ -1,0 +1,26 @@
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  formatting-and-linting:
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    name: Formatting & Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        
+      - name: Install Ruff
+        run: pip install ruff
+      
+      - name: Format
+        run: ruff format src
+      
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "Formatted files with ruff through Github Actions."
+          committer_name: GitHub Actions
+          committer_email: 41898282+github-actions[bot]@users.noreply.github.com
+          
+      - name: Lint
+        run: ruff src
