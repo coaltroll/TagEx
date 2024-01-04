@@ -24,20 +24,15 @@ def valid_audio_format(filename):
 
 
 def read_music_files(directory_path):
-    music_files = []
-    for filename in os.listdir(directory_path):
-        if not valid_audio_format(filename):
-            continue
-
-        filepath = os.path.join(directory_path, filename)
-        music_files.append(
-            {
-                "metadata_item": music_tag.load_file(filepath),
-                "filename": filename,
-                "filepath": filepath,
-            }
-        )
-    return music_files
+    return [
+        {
+            "filename": filename,
+            "filepath": (filepath := os.path.join(directory_path, filename)),
+            "metadata_item": music_tag.load_file(filepath),
+        }
+        for filename in os.listdir(directory_path)
+        if valid_audio_format(filename)
+    ]
 
 
 def _main():
