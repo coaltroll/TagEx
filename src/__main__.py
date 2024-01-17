@@ -60,9 +60,7 @@ def _main() -> int:
         )
 
     if not os.path.isdir(music_directory):
-        print(
-            f"ERROR: '{music_directory}' does not exist or is not a directory."
-        )
+        print(f"ERROR: '{music_directory}' does not exist or is not a directory.")
         return 1
 
     music_files = read_music_files(music_directory)
@@ -74,6 +72,28 @@ def _main() -> int:
         print("Supported extensions:")
         print(SUPPORTED_AUDIO_EXTENSIONS)
         return 1
+
+    music_filenames: list[str] = list(map(lambda file: file["filename"], music_files))
+    print("Music files:")
+    print(music_filenames)
+    loadAll = questionary.confirm("Edit all files? (default: yes)").ask()
+    if loadAll:
+        loaded_music_files = music_files
+    else:
+        music_filenames_to_load = questionary.checkbox(
+            "Select music files to edit",
+            choices=music_filenames,
+            validate=(
+                lambda list_of_selected: "Must select one or more files to edit"
+                if not list_of_selected
+                else True
+            ),
+        ).ask()
+        loaded_music_files: list[MusicFile] = list(
+            filter(lambda file: file["filename"] in music_filenames_to_load, music_files)
+        )
+
+    print(loaded_music_files)
 
     return 0
 
