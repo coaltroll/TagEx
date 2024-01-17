@@ -1,8 +1,11 @@
 import sys
 import os
+from typing import TypedDict
 import music_tag
+import prompt_toolkit
+import questionary
 
-SUPPORTED_AUDIO_EXTENSIONS = [
+SUPPORTED_AUDIO_EXTENSIONS: list[str] = [
     "aac",
     "aiff",
     "dsf",
@@ -16,14 +19,20 @@ SUPPORTED_AUDIO_EXTENSIONS = [
 ]
 
 
-def valid_audio_format(filename):
-    for ext in SUPPORTED_AUDIO_EXTENSIONS:
-        if filename.endswith(ext):
+def valid_audio_format(filename: str) -> bool:
+    for extension in SUPPORTED_AUDIO_EXTENSIONS:
+        if filename.endswith(extension):
             return True
     return False
 
 
-def read_music_files(directory_path):
+class MusicFile(TypedDict):
+    filename: str
+    filepath: str
+    metdata_item: music_tag.MetadataItem
+
+
+def read_music_files(directory_path: str) -> list[MusicFile]:
     return [
         {
             "filename": filename,
@@ -35,24 +44,36 @@ def read_music_files(directory_path):
     ]
 
 
-def _main():
-    music_directory = os.getcwd()
-
+def _main() -> int:
+    current_directory = os.getcwd()
     if len(sys.argv) > 1:
-        music_directory = os.path.join(music_directory, sys.argv[1])
+        music_directory = os.path.join(current_directory, sys.argv[1])
+    else:
+        print("press tab for autocomplete")
+        music_directory = os.path.join(
+            current_directory,
+            questionary.path(
+                "Path to DIRECTORY with music files:",
+                default="./",
+                complete_style=prompt_toolkit.shortcuts.CompleteStyle.READLINE_LIKE,
+            ).ask(),
+        )
 
     if not os.path.isdir(music_directory):
         print(
-            f"ERROR: Directory '{music_directory}' does not exist or is not a directory."
+            f"ERROR: '{music_directory}' does not exist or is not a directory."
         )
         return 1
 
-    metadata_items = map(
-        lambda audio_file: audio_file["metadata_item"],
-        read_music_files(music_directory),
-    )
-    for audio_file in metadata_items:
-        print(audio_file["title"])
+    music_files = read_music_files(music_directory)
+
+    if not music_files:
+        print(
+            f"ERROR: No files with a supported extension type found in directory '{music_directory}'."
+        )
+        print("Supported extensions:")
+        print(SUPPORTED_AUDIO_EXTENSIONS)
+        return 1
 
     return 0
 
