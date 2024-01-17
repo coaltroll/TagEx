@@ -60,9 +60,7 @@ def _main() -> int:
         )
 
     if not os.path.isdir(music_directory):
-        print(
-            f"ERROR: '{music_directory}' does not exist or is not a directory."
-        )
+        print(f"ERROR: '{music_directory}' does not exist or is not a directory.")
         return 1
 
     music_files = read_music_files(music_directory)
