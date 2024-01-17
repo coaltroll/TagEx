@@ -90,7 +90,9 @@ def _main() -> int:
             ),
         ).ask()
         loaded_music_files: list[MusicFile] = list(
-            filter(lambda file: file["filename"] in music_filenames_to_load, music_files)
+            filter(
+                lambda file: file["filename"] in music_filenames_to_load, music_files
+            )
         )
 
     print(loaded_music_files)
