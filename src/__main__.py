@@ -99,8 +99,10 @@ def _main() -> int:
 
     return 0
 
+
 def addn(num1: int, num2: int):
     return num1 + num2
+
 
 if __name__ == "__main__":
     sys.exit(_main())
