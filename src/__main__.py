@@ -29,7 +29,7 @@ def valid_audio_format(filename: str) -> bool:
 class MusicFile(TypedDict):
     filename: str
     filepath: str
-    metdata_item: music_tag.MetadataItem
+    metadata_item: music_tag.MetadataItem
 
 
 def read_music_files(directory_path: str) -> list[MusicFile]:
@@ -76,10 +76,10 @@ def _main() -> int:
     music_filenames: list[str] = list(map(lambda file: file["filename"], music_files))
     print("Music files:")
     print(music_filenames)
-    loadAll = questionary.confirm("Edit all files? (default: yes)").ask()
-    if loadAll:
-        loaded_music_files = music_files
-    else:
+
+    load_all = questionary.confirm("Edit all files? (default: yes)").ask()
+    loaded_music_files: list[MusicFile] = music_files
+    if not load_all:
         music_filenames_to_load = questionary.checkbox(
             "Select music files to edit",
             choices=music_filenames,
@@ -89,7 +89,7 @@ def _main() -> int:
                 else True
             ),
         ).ask()
-        loaded_music_files: list[MusicFile] = list(
+        loaded_music_files = list(
             filter(
                 lambda file: file["filename"] in music_filenames_to_load, music_files
             )
@@ -99,6 +99,8 @@ def _main() -> int:
 
     return 0
 
+def addn(num1: int, num2: int):
+    return num1 + num2
 
 if __name__ == "__main__":
     sys.exit(_main())
