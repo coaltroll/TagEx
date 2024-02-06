@@ -4,6 +4,30 @@ from typing import TypedDict
 import music_tag
 import prompt_toolkit
 import questionary
+import subprocess
+import platform
+
+import tempfile
+
+
+with open("template.py", "r") as f:
+    template_lines = f.readlines()
+
+temp = tempfile.NamedTemporaryFile("w", suffix=".py", delete=False)
+temp.writelines(template_lines)
+filepath = temp.name
+temp.close()
+
+platform_system = platform.system()
+if platform_system == "Darwin":  # macOS
+    subprocess.run(("open", temp.name))
+elif platform_system == "Windows":  # Windows
+    os.system(f"code -w -g '{temp.name}:25#'")
+else:  # linux variants
+    subprocess.call(("xdg-open", temp.name))
+
+with open(filepath, "r") as f:
+    print(f.readlines())
 
 SUPPORTED_AUDIO_EXTENSIONS: list[str] = [
     "aac",
