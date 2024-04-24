@@ -12,6 +12,25 @@ TagEx is a CLI tool to manually modify music file metadata efficiently and conve
     - type something, press enter, apply to all selected files.
 - *Edit directory names?*
 
+### Metadata tags to edit 
+- **music-tag name (windows name)**
+- album (Album)
+- albumartist (Album artist) 
+- artist (Contributing artists)
+- artwork
+- comment (Comments)
+- compilation (Part of a compilation)
+- composer (Composers)
+- discnumber
+- genre (Genre)
+- lyrics
+- totaldiscs
+- totaltracks
+- tracknumber (#)
+- tracktitle (Title)
+- year (Year)
+- isrc
+
 ### Usage
 
 1. Pick the directory with the music files
