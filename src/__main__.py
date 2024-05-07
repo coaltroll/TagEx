@@ -62,7 +62,7 @@ class ChoiceSelectButton(npyscreen.ButtonPress):
 
     def whenPressed(self):
         self.result = questionary.select(
-            "Pick a field to help differentiate the music files.",
+            "Pick a field to help differentiate between the music files.",
             choices=self.choices,
         ).ask()
         curses.initscr().clear()
@@ -90,6 +90,23 @@ metadata_fields = [
     "discnumber",
 ]
 
+class ApplyRegexButton(npyscreen.ButtonPress):
+    def __init__(self, screen, metaDataField, results, directory, *args, **keywords):
+        self.metaDataField = metaDataField
+        self.results = results
+        self.directory = directory
+        super().__init__(screen, *args, **keywords)
+
+    def whenPressed(self):
+        if npyscreen.notify_ok_cancel("Are you sure you want to apply the results to all files?", title=''):
+            music_files = read_music_files(self.directory)
+
+            for i, f in enumerate(music_files):
+                # raise Exception(f["metadata_item"])
+                f["metadata_item"][self.metaDataField] = self.results[i]
+                f["metadata_item"].save()
+                RegexForm.update_grid(RegexForm)
+        # music-tag stuff to apply regexform.resultbutton.result to the metadata field of the tracks
 
 class RegexForm(npyscreen.Form):
     directory = ""
@@ -117,6 +134,8 @@ class RegexForm(npyscreen.Form):
             value="OK",
         )
 
+        self.applyregexbutton = self.add(ApplyRegexButton, name="[ Apply Regex ]", metaDataField="", results=[], directory="")
+
         initial_button_name = " " * (x // 3 - 6)
 
         self.nextrely += 1
@@ -139,12 +158,12 @@ class RegexForm(npyscreen.Form):
             relx=(x // 3) * 2,
             name=initial_button_name,
         )
-
         self.grid = self.add(
             npyscreen.GridColTitles,
             editable=False,
         )
         self.grid.default_column_number = 3
+
 
         self.adjust_widgets()
 
@@ -152,6 +171,9 @@ class RegexForm(npyscreen.Form):
         self.disButton.name = f"Distinction ({self.disButton.result})"
         self.originButton.name = f"Origin ({self.originButton.result})"
         self.resultButton.name = f"Result ({self.resultButton.result})"
+        self.applyregexbutton.metaDataField = self.resultButton.result
+        self.applyregexbutton.results = list(map(lambda n: n[2], self.grid.values))
+        self.applyregexbutton.directory = self.directory
         self.update_grid()
         return super().display(clear)
 
@@ -175,29 +197,41 @@ Supported extensions:
 
         self.status.value = "OK"
         self.status.update()
-
         self.grid.values = []
+
         for f in music_files:
+            # raise Exception(re.sub("\w", "\0", str(f["metadata_item"][self.originButton.result])))
+
             try:
-                self.grid.values.append(
-                    [
-                        str(f["metadata_item"][self.disButton.result]),
-                        str(f["metadata_item"][self.originButton.result]),
-                        re.sub(
-                            self.regex.value or "",
-                            self.replace.value or "",
+                if "\x00" not in re.sub(self.regex.value or "", self.replace.value or "", str(f["metadata_item"][self.originButton.result])):
+                        self.grid.values.append(
+                            [
+                                str(f["metadata_item"][self.disButton.result]),
+                                str(f["metadata_item"][self.originButton.result]),
+                                    re.sub(
+                                    self.regex.value or "",
+                                    self.replace.value or "",
+                                    str(f["metadata_item"][self.originButton.result]),
+                                ),
+                            ]
+                        )
+                else:
+                    self.grid.values.append(
+                        [
+                            str(f["metadata_item"][self.disButton.result]),
                             str(f["metadata_item"][self.originButton.result]),
-                        ),
-                    ]
-                )
+                            "error",
+                        ]
+                    )
             except re.error:
                 self.grid.values.append(
-                    [
-                        str(f["metadata_item"][self.disButton.result]),
-                        str(f["metadata_item"][self.originButton.result]),
-                        "error",
-                    ]
+                [
+                    str(f["metadata_item"][self.disButton.result]),
+                    str(f["metadata_item"][self.originButton.result]),
+                    "error",
+                ]
                 )
+                
 
         # if self.grid.values[0][2] != "Airbag" and self.grid.values[0][2] != "":
         #     raise Exception(self.grid.values)
