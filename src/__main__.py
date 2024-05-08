@@ -106,23 +106,34 @@ class ApplyRegexButton(npyscreen.ButtonPress):
                 f["metadata_item"].save()
                 # RegexForm.adjust_widgets(RegexForm)
 
-class RegexForm(npyscreen.Form):
-    directory = ""
 
+class ParentUpdatingTitleText(npyscreen.TitleText):
+    def when_value_edited(self):
+        self.parent.update()
+
+
+class ParentUpdatingTitleFilenameCombo(npyscreen.TitleFilenameCombo):
+    def when_value_edited(self):
+        self.parent.update()
+
+
+class RegexForm(npyscreen.Form):
     def afterEditing(self):
         self.parentApp.setNextForm(None)
 
     def create(self):
         _, x = self.useable_space()
         self.dir = self.add(
-            npyscreen.TitleFilenameCombo,
+            ParentUpdatingTitleFilenameCombo,
             name="Directory:",
             select_dir=True,
             value=self.get_directory(),
             begin_entry_at=14,
         )
-        self.regex = self.add(npyscreen.TitleText, name="Regex:", begin_entry_at=14)
-        self.replace = self.add(npyscreen.TitleText, name="Replace:", begin_entry_at=14)
+        self.regex = self.add(ParentUpdatingTitleText, name="Regex:", begin_entry_at=14)
+        self.replace = self.add(
+            ParentUpdatingTitleText, name="Replace:", begin_entry_at=14
+        )
         self.status = self.add(
             TitleMultiLineEdit,
             max_height=3,
@@ -162,35 +173,34 @@ class RegexForm(npyscreen.Form):
         )
         self.grid.default_column_number = 3
 
-
-        self.adjust_widgets()
+        self.update()
 
     def display(self, clear=False):
         self.disButton.name = f"Distinction ({self.disButton.result})"
         self.originButton.name = f"Origin ({self.originButton.result})"
         self.resultButton.name = f"Result ({self.resultButton.result})"
+        return super().display(clear)
+
+    def update(self):
         self.update_grid()
-        if len(self.grid.values) > 0:
+        self.update_apply_button()
+
+    def update_apply_button(self):
+        if self.grid.values and len(self.grid.values) > 0:
             self.applyRegexButton.hidden = False
             self.applyRegexButton.metaDataField = self.resultButton.result
             self.applyRegexButton.directory = self.dir.value
             self.applyRegexButton.results = list(map(lambda n: n[2], self.grid.values))
         else:
             self.applyRegexButton.hidden = True
-        
-        return super().display(clear)
 
-    def adjust_widgets(self):
-        if self.dir.value == self.directory:
-            return
-        self.directory = self.dir.value
-        self.update_grid()
+        self.applyRegexButton.update()
 
     def update_grid(self):
-        music_files = read_music_files(self.directory)
+        music_files = read_music_files(self.dir.value)
 
         if not music_files:
-            self.status.value = f"""No files with a supported extension type found in directory '{self.directory}'.
+            self.status.value = f"""No files with a supported extension type found in directory '{self.dir.value}'.
 Supported extensions:
 {SUPPORTED_AUDIO_EXTENSIONS}"""
             self.status.update()
