@@ -105,8 +105,7 @@ class ApplyRegexButton(npyscreen.ButtonPress):
             for i, f in enumerate(music_files):
                 f["metadata_item"][self.metaDataField] = self.results[i]
                 f["metadata_item"].save()
-                # RegexForm.adjust_widgets(RegexForm)
-
+            self.parent.update()
 
 class ParentUpdatingTitleText(npyscreen.TitleText):
     def when_value_edited(self):
@@ -183,9 +182,9 @@ class RegexForm(npyscreen.Form):
         self.update()
 
     def display(self, clear=False):
-        self.disButton.name = f"Distinction ({self.disButton.result})"
-        self.originButton.name = f"Origin ({self.originButton.result})"
-        self.resultButton.name = f"Result ({self.resultButton.result})"
+        self.disButton.name = f"Distinction ({self.disButton.result}) ▼"
+        self.originButton.name = f"Origin ({self.originButton.result}) ▼"
+        self.resultButton.name = f"Result ({self.resultButton.result}) ▼"
         return super().display(clear)
 
     def update(self):
@@ -229,14 +228,14 @@ Supported extensions:
                             self.regex.value or "",
                             self.replace.value or "",
                             str(f["metadata_item"][self.originButton.result])
-                            if "\x00"
-                            not in re.sub(
-                                self.regex.value or "",
-                                self.replace.value or "",
-                                str(f["metadata_item"][self.originButton.result]),
-                            )
-                            else "error",
-                        ),
+                        )
+                        if "\x00"
+                        not in re.sub(
+                            self.regex.value or "",
+                            self.replace.value or "",
+                            str(f["metadata_item"][self.originButton.result]),
+                        )
+                        else "error"
                     ]
                 )
 
