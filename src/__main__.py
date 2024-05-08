@@ -20,6 +20,26 @@ SUPPORTED_AUDIO_EXTENSIONS: list[str] = [
     "wv",
 ]
 
+unique_metadata_fields = [
+    "tracktitle",
+    "tracknumber",
+    "comment",
+]
+
+metadata_fields = [
+    *unique_metadata_fields,
+    "album",
+    "albumartist",
+    "artist",
+    "genre",
+    "year",
+    "composer",
+    "totaldiscs",
+    "totaltracks",
+    "compilation",
+    "discnumber",
+]
+
 
 def valid_audio_format(filename: str) -> bool:
     for extension in SUPPORTED_AUDIO_EXTENSIONS:
@@ -35,7 +55,6 @@ class MusicFile(TypedDict):
 
 
 def read_music_files(directory_path: str) -> list[MusicFile]:
-    # raise Exception()
     return sorted(
         [
             {
@@ -70,26 +89,6 @@ class ChoiceSelectButton(npyscreen.ButtonPress):
         self.parent.DISPLAY()
 
 
-unique_metadata_fields = [
-    "tracktitle",
-    "tracknumber",
-    "comment",
-]
-
-metadata_fields = [
-    *unique_metadata_fields,
-    "album",
-    "albumartist",
-    "artist",
-    "genre",
-    "year",
-    "composer",
-    "totaldiscs",
-    "totaltracks",
-    "compilation",
-    "discnumber",
-]
-
 class ApplyRegexButton(npyscreen.ButtonPress):
     def __init__(self, screen, metaDataField, results, directory, *args, **keywords):
         self.metaDataField = metaDataField
@@ -98,7 +97,9 @@ class ApplyRegexButton(npyscreen.ButtonPress):
         super().__init__(screen, *args, **keywords)
 
     def whenPressed(self):
-        if npyscreen.notify_ok_cancel("Are you sure you want to apply the results to all files?", title=''):
+        if npyscreen.notify_ok_cancel(
+            "Are you sure you want to apply the results to all files?", title=""
+        ):
             music_files = read_music_files(self.directory)
 
             for i, f in enumerate(music_files):
@@ -143,7 +144,13 @@ class RegexForm(npyscreen.Form):
             value="OK",
         )
 
-        self.applyRegexButton = self.add(ApplyRegexButton, name="[ Apply Regex ]", metaDataField="", results=[], directory="")
+        self.applyRegexButton = self.add(
+            ApplyRegexButton,
+            name="[ Apply Regex ]",
+            metaDataField="",
+            results=[],
+            directory="",
+        )
 
         initial_button_name = " " * (x // 3 - 6)
 
@@ -213,55 +220,36 @@ Supported extensions:
         self.grid.values = []
 
         for f in music_files:
-            # raise Exception(re.sub("\w", "\0", str(f["metadata_item"][self.originButton.result])))
-
             try:
-                if "\x00" not in re.sub(self.regex.value or "", self.replace.value or "", str(f["metadata_item"][self.originButton.result])):
-                        self.grid.values.append(
-                            [
-                                str(f["metadata_item"][self.disButton.result]),
+                self.grid.values.append(
+                    [
+                        str(f["metadata_item"][self.disButton.result]),
+                        str(f["metadata_item"][self.originButton.result]),
+                        re.sub(
+                            self.regex.value or "",
+                            self.replace.value or "",
+                            str(f["metadata_item"][self.originButton.result])
+                            if "\x00"
+                            not in re.sub(
+                                self.regex.value or "",
+                                self.replace.value or "",
                                 str(f["metadata_item"][self.originButton.result]),
-                                    re.sub(
-                                    self.regex.value or "",
-                                    self.replace.value or "",
-                                    str(f["metadata_item"][self.originButton.result]),
-                                ),
-                            ]
-                        )
-                else:
-                    self.grid.values.append(
-                        [
-                            str(f["metadata_item"][self.disButton.result]),
-                            str(f["metadata_item"][self.originButton.result]),
-                            "error",
-                        ]
-                    )
+                            )
+                            else "error",
+                        ),
+                    ]
+                )
+
             except re.error:
                 self.grid.values.append(
-                [
-                    str(f["metadata_item"][self.disButton.result]),
-                    str(f["metadata_item"][self.originButton.result]),
-                    "error",
-                ]
+                    [
+                        str(f["metadata_item"][self.disButton.result]),
+                        str(f["metadata_item"][self.originButton.result]),
+                        "error",
+                    ]
                 )
-                
 
-        # if self.grid.values[0][2] != "Airbag" and self.grid.values[0][2] != "":
-        #     raise Exception(self.grid.values)
         self.grid.update()
-
-        # self.grid.values = [
-        #     [
-        #         f["metadata_item"][self.disButton.result].value,
-        #         origin_field := f["metadata_item"][self.originButton.result].value,
-        #         "" try re.sub(
-        #             self.regex.value or "",
-        #             self.replace.value or "",
-        #             origin_field
-        #         ),
-        #     ]
-        #     for f in music_files
-        # ]
 
     def get_directory(self):
         directory = os.getcwd()
@@ -278,64 +266,10 @@ Supported extensions:
 class MyApplication(npyscreen.NPSAppManaged):
     def onStart(self):
         self.addForm("MAIN", RegexForm, name="TagEx")
-        # self.addForm("SHIT", ShitForm, name="TagEx", app=self)
 
 
 def _main() -> int:
-    # current_directory = os.getcwd()
-    # if len(sys.argv) > 1:
-    #     music_directory = os.path.join(current_directory, sys.argv[1])
-    # else:
-    #     print("press tab for autocomplete")
-    #     music_directory = os.path.join(
-    #         current_directory,
-    #         questionary.path(
-    #             "Path to DIRECTORY with music files:",
-    #             default="./",
-    #             complete_style=prompt_toolkit.shortcuts.CompleteStyle.READLINE_LIKE,
-    #         ).ask(),
-    #     )
-
-    # if not os.path.isdir(music_directory):
-    #     print(f"ERROR: '{music_directory}' does not exist or is not a directory.")
-    #     return 1
-
-    # music_files = read_music_files(music_directory)
-
-    # if not music_files:
-    #     print(
-    #         f"ERROR: No files with a supported extension type found in directory '{music_directory}'."
-    #     )
-    #     print("Supported extensions:")
-    #     print(SUPPORTED_AUDIO_EXTENSIONS)
-    #     return 1
-
-    # music_filenames: list[str] = list(map(lambda file: file["filename"], music_files))
-    # print("Music files:")
-    # print(music_filenames)
-
-    # load_all = questionary.confirm("Edit all files? (default: yes)").ask()
-    # loaded_music_files: list[MusicFile] = music_files
-    # if not load_all:
-    #     music_filenames_to_load = questionary.checkbox(
-    #         "Select music files to edit",
-    #         choices=music_filenames,
-    #         validate=(
-    #             lambda list_of_selected: "Must select one or more files to edit"
-    #             if not list_of_selected
-    #             else True
-    #         ),
-    #     ).ask()
-    #     loaded_music_files = list(
-    #         filter(
-    #             lambda file: file["filename"] in music_filenames_to_load, music_files
-    #         )
-    #     )
-
-    # print(loaded_music_files)
-
     MyApplication().run()
-
     return 0
 
 
