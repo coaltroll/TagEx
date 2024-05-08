@@ -102,11 +102,9 @@ class ApplyRegexButton(npyscreen.ButtonPress):
             music_files = read_music_files(self.directory)
 
             for i, f in enumerate(music_files):
-                # raise Exception(f["metadata_item"])
                 f["metadata_item"][self.metaDataField] = self.results[i]
                 f["metadata_item"].save()
-                RegexForm.update_grid(RegexForm)
-        # music-tag stuff to apply regexform.resultbutton.result to the metadata field of the tracks
+                # RegexForm.adjust_widgets(RegexForm)
 
 class RegexForm(npyscreen.Form):
     directory = ""
@@ -134,7 +132,7 @@ class RegexForm(npyscreen.Form):
             value="OK",
         )
 
-        self.applyregexbutton = self.add(ApplyRegexButton, name="[ Apply Regex ]", metaDataField="", results=[], directory="")
+        self.applyRegexButton = self.add(ApplyRegexButton, name="[ Apply Regex ]", metaDataField="", results=[], directory="")
 
         initial_button_name = " " * (x // 3 - 6)
 
@@ -171,10 +169,15 @@ class RegexForm(npyscreen.Form):
         self.disButton.name = f"Distinction ({self.disButton.result})"
         self.originButton.name = f"Origin ({self.originButton.result})"
         self.resultButton.name = f"Result ({self.resultButton.result})"
-        self.applyregexbutton.metaDataField = self.resultButton.result
-        self.applyregexbutton.results = list(map(lambda n: n[2], self.grid.values))
-        self.applyregexbutton.directory = self.directory
         self.update_grid()
+        if len(self.grid.values) > 0:
+            self.applyRegexButton.hidden = False
+            self.applyRegexButton.metaDataField = self.resultButton.result
+            self.applyRegexButton.directory = self.dir.value
+            self.applyRegexButton.results = list(map(lambda n: n[2], self.grid.values))
+        else:
+            self.applyRegexButton.hidden = True
+        
         return super().display(clear)
 
     def adjust_widgets(self):
