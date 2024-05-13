@@ -1,10 +1,11 @@
 #!/bin/bash
 
-if [ -d "samples_testing" ]; then
-    rm -rf "samples_testing"
+if [ -d "../samples_testing" ]; then
+    rm -rf "../samples_testing"
 fi
 
-if [ -d "samples_original" ]; then
+if [ -d "../samples_original" ]; then
+    cd ..
     cp -r "samples_original" "samples_testing"
     echo "OK! (✿ ◠ ‿ ◠)"
 else
