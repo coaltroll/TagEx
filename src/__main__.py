@@ -83,19 +83,17 @@ class ChoiceSelectButton(npyscreen.ButtonPress):
         self.result = (
             new_result
             if (
-                (
-                    new_result := questionary.select(
-                        "Pick a field to help differentiate between the music files.",
-                        choices=self.choices,
-                    ).ask()
-                )
-                is not None
+                new_result := questionary.select(
+                    "Pick a field to help differentiate between the music files.",
+                    choices=self.choices,
+                ).ask()
             )
+            is not None
             else self.result
         )
         curses.initscr().clear()
         curses.curs_set(2)
-        self.parent.DISPLAY()
+        self.parent.update()
 
 
 class ApplyRegexButton(npyscreen.ButtonPress):
