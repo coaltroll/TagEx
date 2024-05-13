@@ -20,11 +20,7 @@ SUPPORTED_AUDIO_EXTENSIONS: list[str] = [
     "wv",
 ]
 
-unique_metadata_fields = [
-    "tracktitle",
-    "tracknumber",
-    "comment",
-]
+unique_metadata_fields = ["filename", "tracktitle", "tracknumber", "comment"]
 
 metadata_fields = [
     *unique_metadata_fields,
@@ -110,8 +106,14 @@ class ApplyRegexButton(npyscreen.ButtonPress):
             music_files = read_music_files(self.directory)
 
             for i, f in enumerate(music_files):
-                f["metadata_item"][self.metaDataField] = self.results[i]
-                f["metadata_item"].save()
+                if self.metaDataField == "filename":
+                    os.rename(
+                        f["filepath"],
+                        f["filepath"].removesuffix(f["filename"]) + self.results[i],
+                    )
+                else:
+                    f["metadata_item"][self.metaDataField] = self.results[i]
+                    f["metadata_item"].save()
             self.parent.update()
 
 
@@ -228,30 +230,42 @@ Supported extensions:
 
         for f in music_files:
             try:
+                metadata_item = f["metadata_item"]
+                distinction_cell_value = str(
+                    f["filename"]
+                    if self.disButton.result == "filename"
+                    else metadata_item[self.disButton.result]
+                )
+                origin_cell_value = str(
+                    f["filename"]
+                    if self.originButton.result == "filename"
+                    else metadata_item[self.originButton.result]
+                )
+                result_cell_value = (
+                    regex_result
+                    if "\x00"
+                    not in (
+                        regex_result := re.sub(
+                            self.regex.value or "",
+                            self.replace.value or "",
+                            origin_cell_value,
+                        )
+                    )
+                    else "error"
+                )
                 self.grid.values.append(
                     [
-                        str(f["metadata_item"][self.disButton.result]),
-                        str(f["metadata_item"][self.originButton.result]),
-                        re.sub(
-                            self.regex.value or "",
-                            self.replace.value or "",
-                            str(f["metadata_item"][self.originButton.result]),
-                        )
-                        if "\x00"
-                        not in re.sub(
-                            self.regex.value or "",
-                            self.replace.value or "",
-                            str(f["metadata_item"][self.originButton.result]),
-                        )
-                        else "error",
+                        distinction_cell_value,
+                        origin_cell_value,
+                        result_cell_value,
                     ]
                 )
 
             except re.error:
                 self.grid.values.append(
                     [
-                        str(f["metadata_item"][self.disButton.result]),
-                        str(f["metadata_item"][self.originButton.result]),
+                        distinction_cell_value,
+                        origin_cell_value,
                         "error",
                     ]
                 )
