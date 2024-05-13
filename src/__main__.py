@@ -80,10 +80,19 @@ class ChoiceSelectButton(npyscreen.ButtonPress):
         super().__init__(screen, *args, **keywords)
 
     def whenPressed(self):
-        self.result = questionary.select(
-            "Pick a field to help differentiate between the music files.",
-            choices=self.choices,
-        ).ask()
+        self.result = (
+            new_result
+            if (
+                (
+                    new_result := questionary.select(
+                        "Pick a field to help differentiate between the music files.",
+                        choices=self.choices,
+                    ).ask()
+                )
+                is not None
+            )
+            else self.result
+        )
         curses.initscr().clear()
         curses.curs_set(2)
         self.parent.DISPLAY()
@@ -106,6 +115,7 @@ class ApplyRegexButton(npyscreen.ButtonPress):
                 f["metadata_item"][self.metaDataField] = self.results[i]
                 f["metadata_item"].save()
             self.parent.update()
+
 
 class ParentUpdatingTitleText(npyscreen.TitleText):
     def when_value_edited(self):
@@ -227,7 +237,7 @@ Supported extensions:
                         re.sub(
                             self.regex.value or "",
                             self.replace.value or "",
-                            str(f["metadata_item"][self.originButton.result])
+                            str(f["metadata_item"][self.originButton.result]),
                         )
                         if "\x00"
                         not in re.sub(
@@ -235,7 +245,7 @@ Supported extensions:
                             self.replace.value or "",
                             str(f["metadata_item"][self.originButton.result]),
                         )
-                        else "error"
+                        else "error",
                     ]
                 )
 
