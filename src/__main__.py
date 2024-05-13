@@ -107,10 +107,12 @@ class ApplyRegexButton(npyscreen.ButtonPress):
 
             for i, f in enumerate(music_files):
                 if self.metaDataField == "filename":
-                    os.rename(
-                        f["filepath"],
-                        f["filepath"].removesuffix(f["filename"]) + self.results[i],
-                    )
+                    old_path = f["filepath"]
+                    extension = os.path.splitext(f["filepath"])[1]
+                    path_no_filename = old_path.removesuffix(f["filename"])
+                    new_path = path_no_filename + self.results[i] + extension
+
+                    os.rename(old_path, new_path)
                 else:
                     f["metadata_item"][self.metaDataField] = self.results[i]
                     f["metadata_item"].save()
@@ -231,13 +233,14 @@ Supported extensions:
         for f in music_files:
             try:
                 metadata_item = f["metadata_item"]
+                filename = os.path.splitext(f["filename"])[0]
                 distinction_cell_value = str(
-                    f["filename"]
+                    filename
                     if self.disButton.result == "filename"
                     else metadata_item[self.disButton.result]
                 )
                 origin_cell_value = str(
-                    f["filename"]
+                    filename
                     if self.originButton.result == "filename"
                     else metadata_item[self.originButton.result]
                 )
