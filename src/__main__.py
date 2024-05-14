@@ -90,6 +90,7 @@ class ChoiceSelectButton(npyscreen.ButtonPress):
         curses.initscr().clear()
         curses.curs_set(2)
         self.parent.update()
+        self.parent.display()
 
 
 class ApplyRegexButton(npyscreen.ButtonPress):
